@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Binaural Beats Generator</title>
+</head>
+<body>
+
+<button onclick="playBinauralBeats()">Play Binaural Beats</button>
+<button onclick="stopBinauralBeats()">Stop Binaural Beats</button>
+<br><br>
+<label>Left Ear Frequency (Hz):</label>
+<input type="number" id="leftEarFrequency" value="100" min="1" max="200" onchange="changeFrequency('left', this.value)">
+<br>
+<label>Right Ear Frequency (Hz):</label>
+<input type="number" id="rightEarFrequency" value="104" min="1" max="200" onchange="changeFrequency('right', this.value)">
+
+<script type="text/javascript">
+  let audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  let oscillatorLeft;
+  let oscillatorRight;
+  let bassEnhancer;
+
+  function playBinauralBeats() {
+    // Create Oscillators
+    oscillatorLeft = audioContext.createOscillator();
+    oscillatorRight = audioContext.createOscillator();
+
+    // Set Frequencies
+    const leftFreq = document.getElementById("leftEarFrequency").value;
+    const rightFreq = document.getElementById("rightEarFrequency").value;
+    oscillatorLeft.frequency.setValueAtTime(leftFreq, audioContext.currentTime);
+    oscillatorRight.frequency.setValueAtTime(rightFreq, audioContext.currentTime);
+
+    // Create Bass Enhancer
+    bassEnhancer = audioContext.createBiquadFilter();
+    bassEnhancer.type = "lowshelf";
+    bassEnhancer.frequency.setValueAtTime(200, audioContext.currentTime); // Maximize bass
+    bassEnhancer.gain.setValueAtTime(25, audioContext.currentTime);
+
+    // Create Stereo Panner Nodes
+    const pannerLeft = audioContext.createStereoPanner();
+    const pannerRight = audioContext.createStereoPanner();
+
+    // Set Pan to Left for Left Oscillator and Right for Right Oscillator
+    pannerLeft.pan.setValueAtTime(-1, audioContext.currentTime);
+    pannerRight.pan.setValueAtTime(1, audioContext.currentTime);
+
+    // Connect Oscillators to Bass Enhancer
+    oscillatorLeft.connect(bassEnhancer);
+    oscillatorRight.connect(bassEnhancer);
+
+    // Connect Bass Enhancer to Panner Nodes
+    bassEnhancer.connect(pannerLeft);
+    bassEnhancer.connect(pannerRight);
+
+    // Connect Panner Nodes to Destination
+    pannerLeft.connect(audioContext.destination);
+    pannerRight.connect(audioContext.destination);
+
+    // Start Oscillators
+    oscillatorLeft.start();
+    oscillatorRight.start();
+  }
+
+  function stopBinauralBeats() {
+    // Stop Oscillators
+    if (oscillatorLeft) {
+      oscillatorLeft.stop();
+      oscillatorLeft.disconnect(bassEnhancer);
+      oscillatorLeft = null;
+    }
+    if (oscillatorRight) {
+      oscillatorRight.stop();
+      oscillatorRight.disconnect(bassEnhancer);
+      oscillatorRight = null;
+    }
+  }
+
+  function changeFrequency(ear, value) {
+    if (ear === 'left' && oscillatorLeft) {
+      oscillatorLeft.frequency.setValueAtTime(value, audioContext.currentTime);
+    } else if (ear === 'right' && oscillatorRight) {
+      oscillatorRight.frequency.setValueAtTime(value, audioContext.currentTime);
+    }
+  }
+</script>
+
+</body>
+</html>
