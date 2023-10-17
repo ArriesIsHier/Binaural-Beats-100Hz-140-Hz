@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Binaural Beats Generator</title>
+</head>
+<body>
+
+<button onclick="playBinauralBeats()">Play Binaural Beats</button>
+<button onclick="stopBinauralBeats()">Stop Binaural Beats</button>
+
+<script type="text/javascript">
+  let audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  let oscillatorLeft;
+  let oscillatorRight;
+
+  function playBinauralBeats() {
+    // Create Oscillators
+    oscillatorLeft = audioContext.createOscillator();
+    oscillatorRight = audioContext.createOscillator();
+
+    // Set Frequencies
+    oscillatorLeft.frequency.setValueAtTime(100, audioContext.currentTime);
+    oscillatorRight.frequency.setValueAtTime(104, audioContext.currentTime);
+
+    // Create Stereo Panner Nodes
+    const pannerLeft = audioContext.createStereoPanner();
+    const pannerRight = audioContext.createStereoPanner();
+
+    // Set Pan to Left for Left Oscillator and Right for Right Oscillator
+    pannerLeft.pan.setValueAtTime(-1, audioContext.currentTime);
+    pannerRight.pan.setValueAtTime(1, audioContext.currentTime);
+
+    // Connect Oscillators to Panner Nodes
+    oscillatorLeft.connect(pannerLeft);
+    oscillatorRight.connect(pannerRight);
+
+    // Connect Panner Nodes to Destination
+    pannerLeft.connect(audioContext.destination);
+    pannerRight.connect(audioContext.destination);
+
+    // Start Oscillators
+    oscillatorLeft.start();
+    oscillatorRight.start();
+  }
+
+  function stopBinauralBeats() {
+    // Stop Oscillators
+    if (oscillatorLeft) {
+      oscillatorLeft.stop();
+      oscillatorLeft = null;
+    }
+    if (oscillatorRight) {
+      oscillatorRight.stop();
+      oscillatorRight = null;
+    }
+  }
+</script>
+
+</body>
+</html>
